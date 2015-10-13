@@ -1,7 +1,7 @@
 ---
 title: TODO 
 abbrev: TODO 
-docname: draft-someone-perc-transform=00
+docname: draft-someone-perc-transform-00
 date: 2015-10-13
 category: std
 
@@ -22,7 +22,7 @@ author:
 
 normative:
   RFC2119:
-  RFC 5285:
+  RFC5285:
  
 informative:
 
@@ -30,12 +30,31 @@ informative:
 
 In some conferencing scenarios, it is desirable for an intermediary to be able to manipulate some RTP parameters, while still providing strong end-to-end security guarantees.  This document defines an SRTP transform based on AES-GCM that uses two separate but related cryptographic contexts to provide "hop by hop" and "end to end" security guarantees.  This document does not define a corresponding transform for SRTP; instead, the normal AES-GCM transforms should be used.
 
---- middle
 
+--- middle
 
 Introduction
 ========
-TODO
+
+Cloud conferring systems that are based on switched conferencing have a central media distribution device (MDD) that receives media from clients and distributes it to other clients but does not need to interpret or change the media content. For theses systems, it is desirable to have one security association from the sending client to the receiving client that can encrypt and authenticated the media end to end while still allowing certain RTP header information to be changed by the MDD. At the same time separate security association provides integrity and optional confidentiality for the RTP and media flowing between the MDD and the clients.
+
+This specification uses the normal SRTP AES-GCM transform to encrypt an RTP packet to form the end security association. The output of this is treated as an RTP packet and again encrypted with SRTP AES GCM transform to form the hop by hop security association between the client and the MDD. The MDD decrypts and checks integrity of the hop by hop security. At this point the MDD may change some of the RTP header information that would impact the end to end integrity. For any values that are changed, the original values before changing are included in a new RTP header extension called the Original Parameters Block. The new RTP packet is encrypted with the hob by hop security association for the destination client and sent. The receiving client decrypts and checks integrity for the hop by hop association from the MDD then replaces any parameters the MDD changes using the information in the Original Parameters Block before decrypting and checking the end to end integrity.
+
+
+Terminology
+==========
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in {{!RFC2119}}.
+
+Terms:
+
+* MDD: media distribution device that routes media from one client to other clients 
+
+* E2E: end-to-end meaning the link from one client through the MDD to the client at the other end. 
+
+* HBH: hop-by-hop meaning the link from the client to or from the MDD. 
+
+* OPB: Original Paramaters Block containing a TLVs for each value that the MDD changed. 
 
 Cryptographic Contexts
 =================
@@ -70,7 +89,7 @@ Encrypting a Packet
 
 Form an RTP packet
 
-If any header extensions, MUST use 5285
+If any header extensions, MUST use {{!RFC5285}}
 
 Apply the AES-GCM transform with the inner parameters (inner transform)
 
