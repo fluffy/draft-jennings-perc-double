@@ -129,6 +129,9 @@ Form an RTP packet
 
 If any header extensions, MUST use {{!RFC5285}}
 
+Optional - add OPB with fields that MDD is likely to change. If this is
+encrypted with the HBH key, it allows options of 
+
 Apply the AES-GCM transform with the inner parameters (inner transform)
 
 Apply the AES-GCM transform with the outer parameters (outer transform)
