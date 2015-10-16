@@ -1,6 +1,6 @@
 ---
-title: TODO 
-abbrev: TODO 
+title: TODO
+abbrev: TODO
 docname: draft-someone-perc-transform-00
 date: 2015-10-13
 category: std
@@ -8,7 +8,7 @@ category: std
 ipr: trust200902
 area: Art
 workgroup: mmusic
-keyword: perc 
+keyword: perc
 
 stand_alone: yes
 pi: [toc, sortrefs, symrefs]
@@ -24,7 +24,7 @@ normative:
   RFC2119:
   RFC5285:
   I-D.ietf-avtcore-srtp-aes-gcm:
- 
+
 informative:
   I-D.jones-perc-private-media-reqts:
 
@@ -35,25 +35,24 @@ to manipulate some RTP parameters, while still providing strong end-to-end
 security guarantees.  This document defines an SRTP transform based on AES-GCM
 that uses two separate but related cryptographic contexts to provide "hop by
 hop" and "end to end" security guarantees.  This document does not define a
-corresponding transform for SRTP; instead, the normal AES-GCM transforms should
+corresponding transform for SRTCP; instead, the normal AES-GCM transforms should
 be used.
 
 
 --- middle
 
-Introduction
-========
+# Introduction
 
-Cloud conferring systems that are based on switched conferencing have a central
+Cloud conferencing systems that are based on switched conferencing have a central
 media distribution device (MDD) that receives media from clients and distributes
-it to other clients but does not need to interpret or change the media
+it to other clients, but does not need to interpret or change the media
 content. For theses systems, it is desirable to have one security association
 from the sending client to the receiving client that can encrypt and
 authenticated the media end to end while still allowing certain RTP header
-information to be changed by the MDD. At the same time separate security
+information to be changed by the MDD. At the same time, a separate security
 association provides integrity and optional confidentiality for the RTP and
 media flowing between the MDD and the clients. More information about the can be
-found in {{I-D.jones-perc-private-media-reqts}}. 
+found in {{I-D.jones-perc-private-media-reqts}}.
 
 This specification uses the normal SRTP AES-GCM transform
 {{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the
@@ -71,8 +70,7 @@ using the information in the Original Parameters Block before decrypting and
 checking the end to end integrity.
 
 
-Terminology
-==========
+# Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
@@ -91,101 +89,121 @@ Terms:
 * OPB: Original Parameters Block containing a TLVs for each value that the MDD
   changed.
 
-Cryptographic Contexts
-=================
+# Cryptographic Contexts
 
-* Same as AES-GCM, but twice; "inner" and "outer" transforms
+This transform uses two cryptographic contexts: An "end to end" context that is
+used by endpoints that originate and consume media, and a "hop by hop" context"
+that is used by an MDD that wishes to make modifications to some RTP header
+parameters.  The application of these transforms is described below.
 
-* Generate double-length keys and salt; first half for "inner", second half for
-   "outer"
+The keys and salt for these contexts are generated with the following steps:
 
-* "Outer" transform: Process the packet as with normal AES-GCM transform
+* Generate key and salt values of twice the length required by the AES-GCM
+  transform
 
-* "Inner" transform: Reconstruct the original RTP header / payload; process with
-   AES-GCM
+* Assign the first half of each value to be the key and salt, respectively, for
+  the inner transform.
+
+* Assign the second half of each value to be the key and salt, respectively, for
+  the outer transform.
+
+Obviously, if the MDD is to be able to modify header parameters but not decrypt
+the payload, then it must have cryptographic context for the outer transform,
+but not the inner transform.  This document does not define how the MDD should
+be provisioned with this information.
+
+# Original Parameters Block
+
+Any SRTP packet processed with this transform MUST contain an Original
+Parameters Block (OPB) extension.  This extension contains the original values
+of any modified headers, in the following form:
+
+~~~~~
+(type  || value) || (type || value) || ...
+~~~~~
+
+In each type/value pair, the "type" field indicates the type of parameter that
+was changed, and the "value" field carries the original value of the parameter.
+The mapping from RTP header parameters to type values, and the length of the
+value field is as follows
+
+| Parameter | Type | Value length |
+|-----------|------|--------------|
+| TODO      | TODO | TODO         |
+
+If no header parameter fields have been modified, the OPB is simply a single
+zero octet.
 
 
-Original Parameters Block
-==================
-
-This is an RTP Header extension
-
-Such an intermediary may change RTP header parameters using the process, but for
-any parameters that are changed, the original values must be sent in an
-
-Original Parameters Block prepended to the payload.
-
-length || (type  || value) || (type || value) || ...
+# Operations
 
 
-Operations
-=======
+## Encrypting a Packet
+
+To encrypt a packet with this transform, the endpoint encrypts the packet with
+the inner transform, adds an OPB, then applies the outer transform.
+
+* Form an RTP packet.  If there are any header extensions, they MUST use
+  {{RFC5285}}.
+
+* Apply the AES-GCM transform with the inner parameters (inner transform)
+
+* Add an OPB header extension.  Since this is the original packet, the OPB
+  SHOULD be empty.  However, the endpoint MAY include any parameters that are
+  likely to be modified by the MDD, to reduce processing burden on the MDD.
+
+* Apply the AES-GCM transform with the outer parameters (outer transform)
 
 
-Encrypting a Packet
-----------------
+## Modifying a Packet
 
-Form an RTP packet
+In order to modify a packet, the MDD undoes the outer transform, modifies the
+packet, updates the OPB with any new modifications, and re-applies the outer
+tranform.
 
-If any header extensions, MUST use {{!RFC5285}}
+* Apply the (outer) AES-GCM decryption transform to the packet
 
-Optional - add OPB with fields that MDD is likely to change. If this is
-encrypted with the HBH key, it allows options of 
+* Separate the OPB from the (encrypted) original payload
 
-Apply the AES-GCM transform with the inner parameters (inner transform)
+* Change any required parameters
 
-Apply the AES-GCM transform with the outer parameters (outer transform)
+* If a changed parameter is not already in the OPB, add it with its original
+  value.
 
-NB: This results in double-encryption; it might be possible to do the outer
-transform integrity-only, if we're OK with the original parameters being
-exposed.
+* If the MDD resets a parameter to its original value, it MAY drop it from the
+  OPB.
 
-This will require slightly more text.
+* The MDD MUST NOT delete any header extensions, but MAY add them.
 
-Modifying a Packet
-----------------
+    * If the MDD adds any header extensions, it must append them and it must
+      keep order of the original headers in 5285 block.
+    * If the MDD appends headers, then it MUST add the the value of the original
+      5285 length field to the OPB, or update it if it is already there.
 
-We assume that an intermediary has the crypto context for the outer transform,
-but not the inner
+* Recombine the new OPB and the (encrypted) original payload
 
-Apply the (outer) AES-GCM decryption transform to the packet
+* Apply the (outer) AES-GCM encryption transform to the packet
 
-Separate the OPB from the (encrypted) original payload
+## Decrypting a Packet
 
-Change any parameters.
+To decrypt a packet, the endpoint first decrypts and verifies using the outer
+transform, then uses the OPB to reconstruct the original packet, which it
+decrypts and verifies with the inner transform.
 
-If a parameter you change is in the OPB already, great.
+* Apply the (outer) AES-GCM decryption transform to the packet
 
-You MAY drop a parameter from the OPB if you reset it to its original value.
+* Separate the OPB from the (encrypted) original payload
 
-Can not delete any header extensions but can add them 
+* Form a new SRTP packet with:
 
-If add any header extensions, must append them and , must keep order of original
-ones in 5285 block. The the value of the original 5285 length field needs to be
-added to the OPB
+  * Header = Received header, with params in OPB replaced with values from OPB
 
-If it's not in the OPB, add it
+  * Header extensions truncated to the 5285 length in OPB
 
-Recombine the new OPB and the (encrypted) original payload
+  * Payload = (encrypted) original payload
 
-Apply the (outer) AES-GCM encryption transform to the packet
+* Apply the (inner) AES-GCM decryption transform to this synthetic SRTP packet
 
-Decrypting a Packet
------------------
-
-Apply the (outer) AES-GCM decryption transform to the packet
-
-Separate the OPB from the (encrypted) original payload
-
-Form a new SRTP packet with:
-
-* Header = Received header, with params in OPB replaced with values from OPB
-
-* Payload = (encrypted) original payload
-
-* Look at original value of 5285 length in OPB to truncate header extensions
-
-Apply the (inner) AES-GCM decryption transform to this synthetic SRTP packet
 
 Security Considerations
 ================
@@ -223,8 +241,8 @@ DTLS-SRTP
 
 
 The  SRTP  transform parameters for each of these protection are:
-   
-~~~~   
+
+~~~~
    DOUBLE_SRTP_AEAD_AES_128_GCM
         cipher:                 AES_128_GCM
         cipher_key_length:      256 bits
@@ -235,7 +253,7 @@ The  SRTP  transform parameters for each of these protection are:
         auth_tag_length:        N/A
         maximum lifetime:       at most 2^31 SRTCP packets and
                                             at most 2^48 SRTP packets
-        
+
    DOUBLE_SRTP_AEAD_AES_256_GCM
         cipher:                 AES_256_GCM
         cipher_key_length:      512 bits
@@ -248,8 +266,8 @@ The  SRTP  transform parameters for each of these protection are:
                                             at most 2^48 SRTP packets
 ~~~~
 
-The first half of the key and salt is used for the HBH transform and the second
-half is used for the E2E transform. 
+The first half of the key and salt is used for the inner (E2E) transform and the
+second half is used for the outer (HBH) transform.
 
 Acknowledgements
 =============
