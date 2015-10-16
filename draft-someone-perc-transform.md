@@ -2,7 +2,7 @@
 title: TODO
 abbrev: TODO
 docname: draft-someone-perc-transform-00
-date: 2015-10-13
+date: 2015-10-16
 category: std
 
 ipr: trust200902
@@ -11,7 +11,7 @@ workgroup: mmusic
 keyword: perc
 
 stand_alone: yes
-pi: [toc, sortrefs, symrefs]
+pi: [sortrefs, symrefs]
 
 author:
     ins: C. TODO
@@ -32,11 +32,9 @@ informative:
 
 In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
-security guarantees.  This document defines an SRTP transform based on AES-GCM
+security guarantees.  This document defines an SRTP and SRTCP transform based on AES-GCM
 that uses two separate but related cryptographic contexts to provide "hop by
-hop" and "end to end" security guarantees.  This document does not define a
-corresponding transform for SRTCP; instead, the normal AES-GCM transforms should
-be used.
+hop" and "end to end" security guarantees.
 
 
 --- middle
@@ -114,8 +112,8 @@ be provisioned with this information.
 
 # Original Parameters Block
 
-Any SRTP packet processed with this transform MUST contain an Original
-Parameters Block (OPB) extension.  This extension contains the original values
+Any SRTP packet processed with this transform MAY contain an Original
+Parameters Block (OPB) extension.  This RTP header extension contains the original values
 of any modified headers, in the following form:
 
 ~~~~~
@@ -127,12 +125,16 @@ was changed, and the "value" field carries the original value of the parameter.
 The mapping from RTP header parameters to type values, and the length of the
 value field is as follows
 
-| Parameter | Type | Value length |
-|-----------|------|--------------|
-| TODO      | TODO | TODO         |
-
-If no header parameter fields have been modified, the OPB is simply a single
-zero octet.
+| Parameter  | Type | Value length |
+|------------|------|--------------|
+| X          | 1    | 1            |
+| CC         | 2    | 1            |
+| M          | 3    | 1            |
+| PT         | 4    | 1            |
+| Seq Num    | 5    | 2            |
+| Timestamp  | 6    | 4            |
+| SSRC       | 7    | 4            |
+| Ext Len    | 8    | 2            |
 
 
 # Operations
@@ -141,16 +143,16 @@ zero octet.
 ## Encrypting a Packet
 
 To encrypt a packet with this transform, the endpoint encrypts the packet with
-the inner transform, adds an OPB, then applies the outer transform.
+the inner transform, may add an OPB, then applies the outer transform.
 
 * Form an RTP packet.  If there are any header extensions, they MUST use
   {{RFC5285}}.
 
 * Apply the AES-GCM transform with the inner parameters (inner transform)
 
-* Add an OPB header extension.  Since this is the original packet, the OPB
-  SHOULD be empty.  However, the endpoint MAY include any parameters that are
-  likely to be modified by the MDD, to reduce processing burden on the MDD.
+* Optionally add an OPB header extension.  The endpoint MAY include any
+  parameters that are likely to be modified by the MDD, to reduce processing
+  burden on the MDD.
 
 * Apply the AES-GCM transform with the outer parameters (outer transform)
 
@@ -168,7 +170,7 @@ tranform.
 * Change any required parameters
 
 * If a changed parameter is not already in the OPB, add it with its original
-  value.
+  value to the OPB. 
 
 * If the MDD resets a parameter to its original value, it MAY drop it from the
   OPB.
@@ -176,9 +178,12 @@ tranform.
 * The MDD MUST NOT delete any header extensions, but MAY add them.
 
     * If the MDD adds any header extensions, it must append them and it must
-      keep order of the original headers in 5285 block.
+    keep order of the original headers in 5285 block.
+    
     * If the MDD appends headers, then it MUST add the the value of the original
-      5285 length field to the OPB, or update it if it is already there.
+      5285 length field to the OPB, or update it if it is already there. The
+      original 5248 length is counted in words and stored in the Ext Len field
+      of the OPB. 
 
 * Recombine the new OPB and the (encrypted) original payload
 
@@ -225,7 +230,7 @@ IANA Considerations
 RTP Header Extension
 ------------------
 
-TODO
+TODO - Define RTP header extension for the OBP block. 
 
 
 DTLS-SRTP
@@ -272,6 +277,8 @@ second half is used for the outer (HBH) transform.
 Acknowledgements
 =============
 
-Many thanks to review from TODO.
+Many thanks to review from GET YOUR NAME HERE. Send comments.
+
+
 
 
