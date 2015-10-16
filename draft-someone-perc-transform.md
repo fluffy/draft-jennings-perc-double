@@ -14,10 +14,21 @@ stand_alone: yes
 pi: [sortrefs, symrefs]
 
 author:
-    ins: C. TODO
-    name: TODO TODO
-    organization: TODO
-    email: TODO@iii.ca
+-
+    ins: C. Jennings 
+    name: TODO TODO 
+    organization: TODO 
+    email: TODO@iii.ca 
+-
+    ins: P. Jones 
+    name: TODO TODO 
+    organization: TODO 
+    email: TODO@iii.ca 
+-
+    ins: A. Roach 
+    name: TODO TODO 
+    organization: TODO 
+    email: TODO@iii.ca 
 
 
 normative:
