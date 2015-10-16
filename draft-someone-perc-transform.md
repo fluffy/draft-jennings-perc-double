@@ -46,9 +46,11 @@ informative:
 
 In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
-security guarantees.  This document defines an SRTP and SRTCP transform based on
-AES-GCM that uses two separate but related cryptographic contexts to provide
-"hop by hop" and "end to end" security guarantees.
+security guarantees.  This document defines an SRTP transform based on AES-GCM
+that uses two separate but related cryptographic contexts to provide "hop by
+hop" and "end to end" security guarantees.  This document does not define a
+corresponding transform for SRTCP; instead, the normal AES-GCM transforms should
+be used.
 
 
 --- middle
