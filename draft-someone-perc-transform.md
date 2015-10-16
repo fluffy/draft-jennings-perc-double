@@ -1,7 +1,7 @@
 ---
-title: TODO
-abbrev: TODO
-docname: draft-someone-perc-transform-00
+title: SRTP Double Encryption Transfrom 
+abbrev: Double SRTP
+docname: draft-jennings-perc-double-00
 date: 2015-10-16
 category: std
 
@@ -14,21 +14,24 @@ stand_alone: yes
 pi: [sortrefs, symrefs]
 
 author:
+
 -
     ins: C. Jennings 
-    name: TODO TODO 
-    organization: TODO 
-    email: TODO@iii.ca 
+    name: Cullen Jennings 
+    organization: Cisco 
+    email: fluffy@iii.ca
+    
 -
-    ins: P. Jones 
-    name: TODO TODO 
-    organization: TODO 
-    email: TODO@iii.ca 
+    ins: P.E. Jones 
+    name: Paul E. Jones 
+    organization: Cisco 
+    email: paulej@packetizer.com
+    
 -
-    ins: A. Roach 
-    name: TODO TODO 
-    organization: TODO 
-    email: TODO@iii.ca 
+    ins: A.B. Roach 
+    name: Adam Roach 
+    organization: Mozilla
+    email: adam@nostrum.com
 
 
 normative:
