@@ -32,20 +32,20 @@ informative:
 
 In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
-security guarantees.  This document defines an SRTP and SRTCP transform based on AES-GCM
-that uses two separate but related cryptographic contexts to provide "hop by
-hop" and "end to end" security guarantees.
+security guarantees.  This document defines an SRTP and SRTCP transform based on
+AES-GCM that uses two separate but related cryptographic contexts to provide
+"hop by hop" and "end to end" security guarantees.
 
 
 --- middle
 
 # Introduction
 
-Cloud conferencing systems that are based on switched conferencing have a central
-media distribution device (MDD) that receives media from clients and distributes
-it to other clients, but does not need to interpret or change the media
-content. For theses systems, it is desirable to have one security association
-from the sending client to the receiving client that can encrypt and
+Cloud conferencing systems that are based on switched conferencing have a
+central media distribution device (MDD) that receives media from clients and
+distributes it to other clients, but does not need to interpret or change the
+media content. For theses systems, it is desirable to have one security
+association from the sending client to the receiving client that can encrypt and
 authenticated the media end to end while still allowing certain RTP header
 information to be changed by the MDD. At the same time, a separate security
 association provides integrity and optional confidentiality for the RTP and
@@ -53,9 +53,9 @@ media flowing between the MDD and the clients. More information about the can be
 found in {{I-D.jones-perc-private-media-reqts}}.
 
 This specification uses the normal SRTP AES-GCM transform
-{{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the
-end security association. The output of this is treated as an RTP packet and
-again encrypted with SRTP AES GCM transform to form the hop by hop security
+{{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the end
+security association. The output of this is treated as an RTP packet and again
+encrypted with SRTP AES GCM transform to form the hop by hop security
 association between the client and the MDD. The MDD decrypts and checks
 integrity of the hop by hop security. At this point the MDD may change some of
 the RTP header information that would impact the end to end integrity. For any
@@ -112,8 +112,8 @@ be provisioned with this information.
 
 # Original Parameters Block
 
-Any SRTP packet processed with this transform MAY contain an Original
-Parameters Block (OPB) extension.  This RTP header extension contains the original values
+Any SRTP packet processed with this transform MAY contain an Original Parameters
+Block (OPB) extension.  This RTP header extension contains the original values
 of any modified headers, in the following form:
 
 ~~~~~
@@ -178,12 +178,12 @@ tranform.
 * The MDD MUST NOT delete any header extensions, but MAY add them.
 
     * If the MDD adds any header extensions, it must append them and it must
-    keep order of the original headers in 5285 block.
+      keep order of the original headers in 5285 block.
     
     * If the MDD appends headers, then it MUST add the the value of the original
       5285 length field to the OPB, or update it if it is already there. The
       original 5248 length is counted in words and stored in the Ext Len field
-      of the OPB. 
+      of the OPB.
 
 * Recombine the new OPB and the (encrypted) original payload
 
@@ -236,8 +236,8 @@ TODO - Define RTP header extension for the OBP block.
 DTLS-SRTP
 ---------
 
- We request IANA to add the following values to  defines a DTLS-SRTP "SRTP
- Protection Profile" defined in  {{!RFC5764}}.
+ We request IANA to add the following values to defines a DTLS-SRTP "SRTP
+ Protection Profile" defined in {{!RFC5764}}.
 
 ~~~~
          DOUBLE_SRTP_AEAD_AES_128_GCM    = {TBD, TBD }
