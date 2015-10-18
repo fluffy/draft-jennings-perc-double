@@ -48,7 +48,11 @@ In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
 security guarantees.  This document defines a SRTP procedures
 that uses two separate but related cryptographic contexts to provide "hop by
-hop" and "end to end" security guarantees.  Both the end-to-end and hop-by-hop cryptographic transforms can utilizes an authenticated encryption with associated data scheme or take advantage of future SRTP transforms with different properties. SRTCP is encrypted hop-by-hop using an already-defined SRTCP cryptographic transform.
+hop" and "end to end" security guarantees.
+Both the end-to-end and hop-by-hop cryptographic transforms can utilizes an
+authenticated encryption with associated data scheme or take advantage of future
+SRTP transforms with different properties. SRTCP is encrypted hop-by-hop using
+an already-defined SRTCP cryptographic transform.
 
 
 --- middle
@@ -63,7 +67,8 @@ association from the sending client to the receiving client that can encrypt and
 authenticated the media end-to-end while still allowing certain RTP header
 information to be changed by the MDD. At the same time, a separate security
 association provides integrity and optional confidentiality for the RTP and
-media flowing between the MDD and the clients. More information about the requirements can be
+media flowing between the MDD and the clients.
+More information about the requirements can be
 found in {{I-D.jones-perc-private-media-reqts}}.
 
 This specification RECOMMENDS the SRTP AES-GCM transform
@@ -76,7 +81,9 @@ the RTP header information that would impact the end-to-end integrity. For any
 values that are changed, the original values before changing are included in a
 new RTP header extension called the Original Header Block. The new RTP
 packet is encrypted with the hop-by-hop security association for the destination
-client before being sent. The receiving client decrypts and checks integrity for the hop-by-hop association from the MDD then replaces any parameters the MDD changes
+client before being sent.
+The receiving client decrypts and checks integrity for the hop-by-hop
+association from the MDD then replaces any parameters the MDD changes
 using the information in the Original Header Block before decrypting and
 checking the end-to-end integrity.
 
@@ -102,10 +109,12 @@ Terms:
 
 # Cryptographic Contexts
 
-This specification uses two cryptographic contexts: An "end-to-end" context that is
-used by endpoints that originate and consume media, and a "hop-by-hop" context"
-that is used by an MDD that wishes to make modifications to some RTP header
-fields.   The RECOMMENDED cipher for the hop-by-hop  and end-to-end context is AES-GCM but as new SRTP ciphers are defined, new combination of the double encryption version of them can be added to the IANA registry. 
+This specification uses two cryptographic contexts: An "end-to-end" context that
+is used by endpoints that originate and consume media, and a "hop-by-hop"
+context" that is used by an MDD that wishes to make modifications to some RTP
+header fields.  The RECOMMENDED cipher for the hop-by-hop and end-to-end context
+is AES-GCM but as new SRTP ciphers are defined, new combination of the double
+encryption version of them can be added to the IANA registry.
 
 The keys and salt for these contexts are generated with the following steps:
 
@@ -151,7 +160,8 @@ value field is as follows
 | SSRC       | 7    | 4            |
 | Ext Len    | 8    | 2            |
 
-Open Issue: We could make a efficient coding by packing the above values as bits in bit field and perhaps packing some of the single values into the same byte.
+Open Issue: We could make a efficient coding by packing the above values as bits
+in bit field and perhaps packing some of the single values into the same byte.
 
 # Operations
 
@@ -186,7 +196,8 @@ tranform.
 * Change any required parameters
 
 * If a changed parameter is not already in the OHB, add it with its original
-  value to the OHB. Note that in the case of cascaded MDDs, the first MDD may have already added an OHB. 
+  value to the OHB. Note that in the case of cascaded MDDs, the first MDD may
+  have already added an OHB.
 
 * If the MDD resets a parameter to its original value, it MAY drop it from the
   OHB.
@@ -227,9 +238,18 @@ decrypts and verifies with the inner transform.
 
 ## Recommended Inner and Outer Cryptographic Transforms
 
-This specification recommends and defines values for AES-GCM as both the inner and outer cryptographic transforms (DOUBLE_SRTP_AEAD_AES_128_GCM and   DOUBLE_SRTP_AEAD_AES_256_GCM).  This transform provides for authenticated encryption and will consume additional processing time double-encrypting for HBH.  However, the approach is secure and simple, and is thus viewed as an acceptable tradeoff in processing efficiency.
+This specification recommends and defines values for AES-GCM as both the inner
+and outer cryptographic transforms (DOUBLE_SRTP_AEAD_AES_128_GCM and
+DOUBLE_SRTP_AEAD_AES_256_GCM).  This transform provides for authenticated
+encryption and will consume additional processing time double-encrypting for
+HBH.  However, the approach is secure and simple, and is thus viewed as an
+acceptable tradeoff in processing efficiency.
 
-If a new SRTP transform was defined that encrypted some of all of the RTP header, it would be reasonable for systems to have the option of using that for the outer transform. Similarly if a new transform was defined that provided only integrity, that would also be reasonable to use for the HBH as the payload data is already encrypted by the E2E. 
+If a new SRTP transform was defined that encrypted some of all of the RTP
+header, it would be reasonable for systems to have the option of using that for
+the outer transform. Similarly if a new transform was defined that provided only
+integrity, that would also be reasonable to use for the HBH as the payload data
+is already encrypted by the E2E.
 
 
 Security Considerations
