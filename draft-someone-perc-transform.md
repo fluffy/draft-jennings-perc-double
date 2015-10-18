@@ -1,5 +1,5 @@
 ---
-title: SRTP Double Encryption Transfrom 
+title: SRTP Double Encryption Procedures 
 abbrev: Double SRTP
 docname: draft-jennings-perc-double-00
 date: 2015-10-16
@@ -46,11 +46,13 @@ informative:
 
 In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
-security guarantees.  This document defines an SRTP transform based on AES-GCM
+security guarantees.  This document defines a SRTP procedures
 that uses two separate but related cryptographic contexts to provide "hop by
-hop" and "end to end" security guarantees.  This document does not define a
-corresponding transform for SRTCP; instead, the normal AES-GCM transforms should
-be used.
+hop" and "end to end" security guarantees.
+Both the end-to-end and hop-by-hop cryptographic transforms can utilizes an
+authenticated encryption with associated data scheme or take advantage of future
+SRTP transforms with different properties. SRTCP is encrypted hop-by-hop using
+an already-defined SRTCP cryptographic transform.
 
 
 --- middle
@@ -60,28 +62,30 @@ be used.
 Cloud conferencing systems that are based on switched conferencing have a
 central media distribution device (MDD) that receives media from clients and
 distributes it to other clients, but does not need to interpret or change the
-media content. For theses systems, it is desirable to have one security
+media content. For these systems, it is desirable to have one security
 association from the sending client to the receiving client that can encrypt and
-authenticated the media end to end while still allowing certain RTP header
+authenticated the media end-to-end while still allowing certain RTP header
 information to be changed by the MDD. At the same time, a separate security
 association provides integrity and optional confidentiality for the RTP and
-media flowing between the MDD and the clients. More information about the can be
+media flowing between the MDD and the clients.
+More information about the requirements can be
 found in {{I-D.jones-perc-private-media-reqts}}.
 
-This specification uses the normal SRTP AES-GCM transform
-{{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the end
-security association. The output of this is treated as an RTP packet and again
-encrypted with SRTP AES GCM transform to form the hop by hop security
+This specification RECOMMENDS the SRTP AES-GCM transform
+{{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the end-to-end
+security association. The output of this is treated as an RTP packet and (optionally) again
+encrypted with an SRTP transform to form the hop-by-hop security
 association between the client and the MDD. The MDD decrypts and checks
-integrity of the hop by hop security. At this point the MDD may change some of
-the RTP header information that would impact the end to end integrity. For any
+integrity of the hop-by-hop security. At this point the MDD may change some of
+the RTP header information that would impact the end-to-end integrity. For any
 values that are changed, the original values before changing are included in a
-new RTP header extension called the Original Parameters Block. The new RTP
-packet is encrypted with the hob by hop security association for the destination
-client and sent. The receiving client decrypts and checks integrity for the hop
-by hop association from the MDD then replaces any parameters the MDD changes
-using the information in the Original Parameters Block before decrypting and
-checking the end to end integrity.
+new RTP header extension called the Original Header Block. The new RTP
+packet is encrypted with the hop-by-hop security association for the destination
+client before being sent.
+The receiving client decrypts and checks integrity for the hop-by-hop
+association from the MDD then replaces any parameters the MDD changes
+using the information in the Original Header Block before decrypting and
+checking the end-to-end integrity.
 
 
 # Terminology
@@ -100,37 +104,41 @@ Terms:
 
 * HBH: hop-by-hop meaning the link from the client to or from the MDD.
 
-* OPB: Original Parameters Block containing a TLVs for each value that the MDD
-  changed.
+* OHB: Original Header Block containing a TLVs for each value that the MDD
+  Changed in the RTP header.
 
 # Cryptographic Contexts
 
-This transform uses two cryptographic contexts: An "end to end" context that is
-used by endpoints that originate and consume media, and a "hop by hop" context"
-that is used by an MDD that wishes to make modifications to some RTP header
-parameters.  The application of these transforms is described below.
+This specification uses two cryptographic contexts: An "end-to-end" context that
+is used by endpoints that originate and consume media, and a "hop-by-hop"
+context" that is used by an MDD that wishes to make modifications to some RTP
+header fields.  The RECOMMENDED cipher for the hop-by-hop and end-to-end context
+is AES-GCM but as new SRTP ciphers are defined, new combination of the double
+encryption version of them can be added to the IANA registry.
 
 The keys and salt for these contexts are generated with the following steps:
 
-* Generate key and salt values of twice the length required by the AES-GCM
-  transform
+* Generate key and salt values of twice the length required by the E2E and HBH transforms
 
-* Assign the first half of each value to be the key and salt, respectively, for
+* Assign the first part of each value to be the key and salt, respectively, for
   the inner transform.
 
-* Assign the second half of each value to be the key and salt, respectively, for
+* Assign the second part of each value to be the key and salt, respectively, for
   the outer transform.
 
-Obviously, if the MDD is to be able to modify header parameters but not decrypt
+Obviously, if the MDD is to be able to modify header fields but not decrypt
 the payload, then it must have cryptographic context for the outer transform,
 but not the inner transform.  This document does not define how the MDD should
 be provisioned with this information.
 
-# Original Parameters Block
+# Original Header Block
 
-Any SRTP packet processed with this transform MAY contain an Original Parameters
-Block (OPB) extension.  This RTP header extension contains the original values
-of any modified headers, in the following form:
+Any SRTP packet processed following these procedures MAY contain an Original Header
+Block (OHB) extension.  
+
+
+This RTP header extension contains the original values
+of any modified header fields, in the following form:
 
 ~~~~~
 (type  || value) || (type || value) || ...
@@ -141,7 +149,7 @@ was changed, and the "value" field carries the original value of the parameter.
 The mapping from RTP header parameters to type values, and the length of the
 value field is as follows
 
-| Parameter  | Type | Value length |
+| Field      | Type | Value length |
 |------------|------|--------------|
 | X          | 1    | 1            |
 | CC         | 2    | 1            |
@@ -152,78 +160,96 @@ value field is as follows
 | SSRC       | 7    | 4            |
 | Ext Len    | 8    | 2            |
 
+Open Issue: We could make a efficient coding by packing the above values as bits
+in bit field and perhaps packing some of the single values into the same byte.
 
 # Operations
 
 
 ## Encrypting a Packet
 
-To encrypt a packet with this transform, the endpoint encrypts the packet with
-the inner transform, may add an OPB, then applies the outer transform.
+To encrypt a packet, the endpoint encrypts the packet with
+the inner transform, may add an OHB, then applies the outer transform.
 
 * Form an RTP packet.  If there are any header extensions, they MUST use
   {{RFC5285}}.
 
-* Apply the AES-GCM transform with the inner parameters (inner transform)
+* Apply the transform to the RTP packet
 
-* Optionally add an OPB header extension.  The endpoint MAY include any
-  parameters that are likely to be modified by the MDD, to reduce processing
-  burden on the MDD.
+* Optionally add an OHB header extension.  The endpoint MAY include any
+  header fields that are signaled to be modified by the MDD, to reduce processing
+  burden on the MDD. Open Issue: do we want the sending client to be able to add an OHB? 
 
-* Apply the AES-GCM transform with the outer parameters (outer transform)
+* Apply the SRTP cryptographic transform with the outer parameters (outer transform)
 
 
 ## Modifying a Packet
 
 In order to modify a packet, the MDD undoes the outer transform, modifies the
-packet, updates the OPB with any new modifications, and re-applies the outer
+packet, updates the OHB with any new modifications, and re-applies the outer
 tranform.
 
-* Apply the (outer) AES-GCM decryption transform to the packet
+* Apply the (outer) decryption transform to the packet
 
-* Separate the OPB from the (encrypted) original payload
+* Separate the OHB from the (encrypted) original payload
 
 * Change any required parameters
 
-* If a changed parameter is not already in the OPB, add it with its original
-  value to the OPB. 
+* If a changed parameter is not already in the OHB, add it with its original
+  value to the OHB. Note that in the case of cascaded MDDs, the first MDD may
+  have already added an OHB.
 
 * If the MDD resets a parameter to its original value, it MAY drop it from the
-  OPB.
+  OHB.
 
 * The MDD MUST NOT delete any header extensions, but MAY add them.
 
     * If the MDD adds any header extensions, it must append them and it must
-      keep order of the original headers in 5285 block.
+      maintain the order of the original headers in the {{RFC5285}} block.
     
-    * If the MDD appends headers, then it MUST add the the value of the original
-      5285 length field to the OPB, or update it if it is already there. The
-      original 5248 length is counted in words and stored in the Ext Len field
-      of the OPB.
+    * If the MDD appends headers, then it MUST add the value of the original
+      {{RFC5285}} length field to the OHB, or update it if it is already there. The
+      original {{RFC5285}} length is counted in words and stored in the Ext Len field
+      of the OHB.
 
-* Recombine the new OPB and the (encrypted) original payload
+* Recombine the new OHB and the (encrypted) original payload
 
-* Apply the (outer) AES-GCM encryption transform to the packet
+* Apply the (outer) encryption transform to the packet
 
 ## Decrypting a Packet
 
 To decrypt a packet, the endpoint first decrypts and verifies using the outer
-transform, then uses the OPB to reconstruct the original packet, which it
+transform, then uses the OHB to reconstruct the original packet, which it
 decrypts and verifies with the inner transform.
 
-* Apply the (outer) AES-GCM decryption transform to the packet
+* Apply the (outer) decryption transform to the packet
 
-* Separate the OPB from the (encrypted) original payload
+* Separate the OHB from the (encrypted) original payload
 
 * Form a new SRTP packet with:
 
-  * Header = Received header, with params in OPB replaced with values from OPB
+  * Header = Received header, with header fields replaced with values from OHB
 
-  * Header extensions truncated to the 5285 length in OPB
+  * Header extensions truncated to the {{RFC5285}} length in OHB
 
   * Payload = (encrypted) original payload
 
-* Apply the (inner) AES-GCM decryption transform to this synthetic SRTP packet
+* Apply the (inner) decryption transform to this synthetic SRTP packet
+
+## Recommended Inner and Outer Cryptographic Transforms
+
+This specification recommends and defines values for AES-GCM as both the inner
+and outer cryptographic transforms (DOUBLE_SRTP_AEAD_AES_128_GCM and
+DOUBLE_SRTP_AEAD_AES_256_GCM).  This transform provides for authenticated
+encryption and will consume additional processing time double-encrypting for
+HBH.  However, the approach is secure and simple, and is thus viewed as an
+acceptable tradeoff in processing efficiency.
+
+If a new SRTP transform was defined that encrypted some of all of the RTP
+header, it would be reasonable for systems to have the option of using that for
+the outer transform. Similarly if a new transform was defined that provided only
+integrity, that would also be reasonable to use for the HBH as the payload data
+is already encrypted by the E2E.
 
 
 Security Considerations
