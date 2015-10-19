@@ -2,7 +2,7 @@
 title: SRTP Double Encryption Procedures 
 abbrev: Double SRTP
 docname: draft-jennings-perc-double-00
-date: 2015-10-16
+date: 2015-10-18
 category: std
 
 ipr: trust200902
