@@ -157,6 +157,9 @@ value field is as follows
 | SSRC       | 7    | 4            |
 | Ext Len    | 8    | 2            |
 
+The only values implementation MAY use are the values for X, PT, SeqNum, and
+ExtLen. The others entries are defined purely as place holders.
+
 Open Issue: We could make a efficient coding by packing the above values as bits
 in bit field and perhaps packing some of the single values into the same byte.
 
@@ -221,11 +224,13 @@ To decrypt a packet, the endpoint first decrypts and verifies using the outer
 transform, then uses the OHB to reconstruct the original packet, which it
 decrypts and verifies with the inner transform.
 
-* Apply the (outer) decryption transform to the packet
+* Apply the (outer) decryption transform to the packet. If the integrity check
+  does not pass, discard the packet. The result of this is referred to as the
+  outer SRTP packet. 
 
 * Separate the OHB from the (encrypted) original payload
 
-* Form a new SRTP packet with:
+* Form a new synthetic SRTP packet with:
 
   * Header = Received header, with header fields replaced with values from OHB
 
@@ -233,7 +238,25 @@ decrypts and verifies with the inner transform.
 
   * Payload = (encrypted) original payload
 
-* Apply the (inner) decryption transform to this synthetic SRTP packet
+* Apply the (inner) decryption transform to this synthetic SRTP packet. If the
+  integrity check does not pass, discard the packet.
+
+Once the packet has successfully decrypted, the application needs to be carefull
+about which information it uses to get the correct behavior. The application MUST
+use only the information found in the synthetic SRTP packet and MUST NOT use the
+other data that was in the outer SRTP packet other than the following
+exceptions:
+
+* the PT from the outer SRTP packet is used for normal matching to SDP and codec
+  selection.
+
+* the SeqNum from the outer SRTP packet is used for normal RTP ordering.
+
+If any of the following RTP headers extensions are found in the outer SRTP
+packet, they MAY be used:
+
+* TBD
+
 
 ## Recommended Inner and Outer Cryptographic Transforms
 
@@ -318,7 +341,7 @@ second half is used for the outer (HBH) transform.
 Acknowledgements
 =============
 
-Many thanks to review from GET YOUR NAME HERE. Send comments.
+Many thanks to review from GET YOUR NAME HERE. Please, send comments.
 
 
 
