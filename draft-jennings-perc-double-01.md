@@ -261,11 +261,12 @@ packet, they MAY be used:
 ## Recommended Inner and Outer Cryptographic Transforms
 
 This specification recommends and defines values for AES-GCM as both the inner
-and outer cryptographic transforms (DOUBLE_SRTP_AEAD_AES_128_GCM and
-DOUBLE_SRTP_AEAD_AES_256_GCM).  This transform provides for authenticated
-encryption and will consume additional processing time double-encrypting for
-HBH.  However, the approach is secure and simple, and is thus viewed as an
-acceptable tradeoff in processing efficiency.
+and outer cryptographic transforms
+(DOUBLE_SRTP_AEAD_AES_128_GCM_AEAD_AES_128_GCM and
+DOUBLE_SRTP_AEAD_AES_256_GCM_AEAD_AES_256_GCM).  This transform provides for
+authenticated encryption and will consume additional processing time
+double-encrypting for HBH.  However, the approach is secure and simple, and is
+thus viewed as an acceptable tradeoff in processing efficiency.
 
 If a new SRTP transform was defined that encrypted some of all of the RTP
 header, it would be reasonable for systems to have the option of using that for
@@ -303,17 +304,21 @@ DTLS-SRTP
  We request IANA to add the following values to defines a DTLS-SRTP "SRTP
  Protection Profile" defined in {{!RFC5764}}.
 
-~~~~
-         DOUBLE_SRTP_AEAD_AES_128_GCM    = {TBD, TBD }
-         DOUBLE_SRTP_AEAD_AES_256_GCM    = {TBD, TBD }
-~~~~
+| Value          | Profile            | Reference |
+|----------|-----------|-------|
+|  {TBD, TBD}  | DOUBLE_SRTP_AEAD_AES_128_GCM_AEAD_AES_128_GCM | RFC_TBD |
+|  {TBD, TBD}  | DOUBLE_SRTP_AEAD_AES_256_GCM_AEAD_AES_256_GCM | RFC_TBD |
+|  {TBD, TBD}  | DOUBLE_SRTP_AEAD_AES_128_GCM_NULL_NULL | RFC_TBD |
+|  {TBD, TBD}  | DOUBLE_SRTP_AEAD_AES_256_GCM_NULL_NULL  | RFC_TBD |
 
+Note to IANA: Please assign value to the TBD and update table to point at this
+RFC for these values.
 
 The  SRTP  transform parameters for each of these protection are:
 
 ~~~~
-   DOUBLE_SRTP_AEAD_AES_128_GCM
-        cipher:                 AES_128_GCM
+   DOUBLE_SRTP_AEAD_AES_128_GCM_AEAD_AES_128_GCM
+        cipher:                 AES_128_GCM then AES_128_GCM 
         cipher_key_length:      256 bits
         cipher_salt_length:     192 bits
         aead_auth_tag_length:   32 octets
@@ -323,11 +328,33 @@ The  SRTP  transform parameters for each of these protection are:
         maximum lifetime:       at most 2^31 SRTCP packets and
                                             at most 2^48 SRTP packets
 
-   DOUBLE_SRTP_AEAD_AES_256_GCM
-        cipher:                 AES_256_GCM
+   DOUBLE_SRTP_AEAD_AES_256_GCM_AEAD_AES_256_GCM
+        cipher:                 AES_256_GCM then AES_256_GCM 
         cipher_key_length:      512 bits
         cipher_salt_length:     192 bits
         aead_auth_tag_length:   32 octets
+        auth_function:          NULL
+        auth_key_length:        N/A
+        auth_tag_length:        N/A
+        maximum lifetime:       at most 2^31 SRTCP packets and
+                                            at most 2^48 SRTP packets
+
+   DOUBLE_SRTP_AEAD_AES_128_GCM_NULL_NULL
+        cipher:                 AES_128_GCM then identity transform
+        cipher_key_length:      128 bits
+        cipher_salt_length:     96 bits
+        aead_auth_tag_length:   16 octets
+        auth_function:          NULL
+        auth_key_length:        N/A
+        auth_tag_length:        N/A
+        maximum lifetime:       at most 2^31 SRTCP packets and
+                                            at most 2^48 SRTP packets
+
+   DOUBLE_SRTP_AEAD_AES_256_GCM_NULL_NULL
+        cipher:                 AES_256_GCM then identity transform
+        cipher_key_length:      256 bits
+        cipher_salt_length:     96 bits
+        aead_auth_tag_length:   16 octets
         auth_function:          NULL
         auth_key_length:        N/A
         auth_tag_length:        N/A
@@ -337,6 +364,10 @@ The  SRTP  transform parameters for each of these protection are:
 
 The first half of the key and salt is used for the inner (E2E) transform and the
 second half is used for the outer (HBH) transform.
+
+The _NULL_NULL transforms MAY be used when the SRTP to and from the MDD is
+protected by an alternative security mechanism such as IPsec or a DTLS tunnel.
+
 
 Acknowledgements
 =============
