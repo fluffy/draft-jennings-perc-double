@@ -362,8 +362,20 @@ IANA Considerations
 RTP Header Extension
 ------------------
 
-TODO - Define RTP header extension for the OBP block. 
+This document defines a new extension URI in the RTP Compact Header Extensions
+part of the Real-Time Transport Protocol (RTP) Parameters registry,
+according to the following data:
 
+Extension URI: urn:ietf:params:rtp-hdrext:ohb
+
+Description:   Original Header Block
+
+Contact: Cullen Jennings <fluffy@iii.ca>
+
+Reference:     RFCAAAA
+
+Note to RFC Editor: Replace RFCXXXX with the RFC number of this specification. 
+      
 
 DTLS-SRTP
 ---------
