@@ -354,7 +354,9 @@ changed parameters (original and modified).  The recipient will have to choose
 which to use; there is risk in using either that depends on the session setup.
 
 The security properties for both the inner and outer key holders are the same as
-the security properties of classic SRTP
+the security properties of classic SRTP.
+
+TODO discuss risks of using NULL for hop-by-hop. 
 
 IANA Considerations
 ==============
