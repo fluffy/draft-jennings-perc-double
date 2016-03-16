@@ -1,51 +1,50 @@
----
-title: SRTP Double Encryption Procedures 
-abbrev: Double SRTP
-docname: draft-jennings-perc-double-01
-date: 2015-11-30
-category: std
-
-ipr: trust200902
-area: Art
-workgroup: mmusic
-keyword: perc
-
-stand_alone: yes
-pi: [sortrefs, symrefs]
-
-author:
-
--
-    ins: C. Jennings 
-    name: Cullen Jennings 
-    organization: Cisco 
-    email: fluffy@iii.ca
+%%%
+    #
+    # SRTP Double Encryption Procedures
+    #
+    # Generation tool chain:
+    #   mmark (https://github.com/miekg/mmark)
+    #   xml2rfc (http://xml2rfc.ietf.org/)
+    #
+    Title = "SRTP Double Encryption Procedures"
+    abbrev = "Double SRTP"
+    category = "std"
+    docName = "draft-jennings-perc-double-01"
+    ipr= "trust200902"
+    area = "Internet"
+    keyword = ["PERC", "SRTP", "RTP", "conferencing", "encryption"]
     
--
-    ins: P.E. Jones 
-    name: Paul E. Jones 
-    organization: Cisco 
-    email: paulej@packetizer.com
-    
--
-    ins: A.B. Roach 
-    name: Adam Roach 
-    organization: Mozilla
-    email: adam@nostrum.com
+    [pi]
+    symrefs = "yes"
+    sortrefs = "yes"
 
+    [[author]]
+    initials = "C."
+    surname = "Jennings"
+    fullname = "Cullen Jennings"
+    organization = "Cisco Systems"
+      [author.address]
+      email = "fluffy@iii.ca"
 
-normative:
-  I-D.ietf-avtcore-srtp-aes-gcm:
-  RFC2119:
-  RFC3711:
-  RFC5285:
+    [[author]]
+    initials = "P.E."
+    surname = "Jones"
+    fullname = "Paul E. Jones"
+    organization = "Cisco Systems"
+      [author.address]
+      email = "paulej@packetizer.com"
 
-informative:
-  I-D.jones-perc-dtls-tunnel:
-  I-D.jones-perc-private-media-framework:
-  RFC6347:
+    [[author]]
+    initials = "A.B."
+    surname = "Roach"
+    fullname = "Adam Roach"
+    organization = "Mozilla"
+      [author.address]
+      email = "adam@nostrum.com"
+      
+%%%
 
---- abstract
+.# Abstract
 
 In some conferencing scenarios, it is desirable for an intermediary to be able
 to manipulate some RTP parameters, while still providing strong end-to-end
@@ -58,7 +57,7 @@ different properties.  RTCP is encrypted hop-by-hop using an already-defined
 SRTCP cryptographic transform.
 
 
---- middle
+{mainmatter}
 
 # Introduction
 
@@ -72,10 +71,10 @@ information to be changed by the MDD.  At the same time, a separate security
 association provides integrity and optional confidentiality for the RTP and
 media flowing between the MDD and the clients.  See the framework document
 that describes this concept in more detail in more detail in
-{{I-D.jones-perc-private-media-framework}}.
+[@I-D.jones-perc-private-media-framework].
 
 This specification RECOMMENDS the SRTP AES-GCM transform
-{{I-D.ietf-avtcore-srtp-aes-gcm}} to encrypt an RTP packet to form the
+[@!RFC7714] to encrypt an RTP packet to form the
 end-to-end security association.  The output of this is treated as an RTP packet
 and (optionally) again encrypted with an SRTP transform to form the hop-by-hop
 security association between the client and the MDD.  The MDD decrypts and checks
@@ -94,7 +93,7 @@ checking the end-to-end integrity.
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in {{!RFC2119}}.
+interpreted as described in [@!RFC2119].
 
 Terms:
 
@@ -133,7 +132,7 @@ The keys and salt for these contexts are generated with the following steps:
   the outer (hop-by-hop) transform.
 
 As a special case, the outer cryptographic transform MAY be the NULL cipher
-(see {{RFC3711}}) if a secure transport, such as {{RFC6347}}, is used over a
+(see [@!RFC3711]) if a secure transport, such as [@RFC6347], is used over a
 hop (i.e., between an endpoint and MDD or between two MDDs).  In that case, the
 key and salt values generated would be the length required only for the inner
 cryptographic transform, which MUST NOT be the NULL cipher.
@@ -141,9 +140,8 @@ cryptographic transform, which MUST NOT be the NULL cipher.
 Obviously, if the MDD is to be able to modify header fields but not decrypt the
 payload, then it must have cryptographic context for the outer transform, but
 not the inner transform.  This document does not define how the MDD should be
-provisioned with this information.  {Note: At this point do we want to say
-something like "One possible way to provide key material for the outer
-("hop-by-hop") transform is to use {{I-D.jones-perc-dtls-tunnel}}."}
+provisioned with this information.  One possible way to provide key material for
+the outer ("hop-by-hop") transform is to use [@I-D.jones-perc-dtls-tunnel].
 
 
 # Original Header Block
@@ -155,8 +153,8 @@ This RTP header extension contains the original values of any modified header
 fields and MUST be placed after any already-existing RTP header extensions.
 Placement of the OHB after any original header extensions is important so that
 the receiving endpoint can properly authenticate the original packet and
-any included RTP header extension values, which it will do by restoring the
-modified RTP header field values by copying those from the OHB and then
+any originally included RTP header extensions, which it will do by restoring
+the modified RTP header field values by copying those from the OHB and then
 removing the OHB extension and any other RTP header extensions that appear
 after the OHB extension.
 
@@ -170,6 +168,7 @@ contained in the extension.
 If the OHB is one octet in length, it contains both the original X bit
 and PT field value.  In this case, the OHB has this form:
 
+{align="left"}
 ~~~~~
  0
  0 1 2 3 4 5 6 7
@@ -181,6 +180,7 @@ and PT field value.  In this case, the OHB has this form:
 If the OHB is two octets in length, it contains the original RTP packet
 sequence number.  In this case, the OHB has this form:
 
+{align="left"}
 ~~~~~
  0                   1 
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 
@@ -193,6 +193,7 @@ If the OHB is three octets in length, it contains the original X bit,
 PT field value, and RTP packet sequence number.  In this case, the OHB has
 this form:
 
+{align="left"}
 ~~~~~
  0                   1                   2
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
@@ -219,21 +220,11 @@ the inner transform and then applies the outer transform.  The processes
 is as follows:
 
 * Form an RTP packet.  If there are any header extensions, they MUST use
-  {{RFC5285}}.
+  [@!RFC5285].
 
-* Apply the inner cryptographic transform to the RTP packet
+* Apply the inner cryptographic transform to the RTP packet.
 
-* Optionally add an OHB header extension.  The endpoint MAY include the OHB
-  containing copies of RTP header information it knows through some means
-  defined outside of this document that the MDD is likely to change.
-{Note: I don't like this step, because it doesn't really save
-any work for the MDD.  The MDD has to look for the field and get prepared
-to insert it or change it.  By the time it does that, there is really
-very little work left.  And I don't like it being mandatory, either, because
-the only logical mandatory requirement would be the 3-octet variety, thus
-making every packet 3 octets longer.  I prefer we just leave this to the MDD.}
-
-* Apply the outer cryptographic transform to the RTP packet
+* Apply the outer cryptographic transform to the RTP packet.
 
 
 ## Modifying a Packet
@@ -249,23 +240,22 @@ and re-applies the outer transform.
 * If a changed RTP header field is not already in the OHB, add it with its
   original value to the OHB.  Note that in the case of cascaded MDDs, the
   first MDD may have already added an OHB.
-{Note: if we allow the endpoint to add the OHB, we need to revise the
-above sentence to reflect the endpoint's contribution.}
 
 * If the MDD resets a parameter to its original value, it MAY drop it from the
   OHB as long as there are no other header extensions following the OHB.
+  Note that this might result in a decrease in the size of the OHB.
 
 * The MDD MUST NOT delete any header extensions, but MAY add them.
 
     * If the MDD adds any header extensions, it must append them and it must
-      maintain the order of the original headers in the {{RFC5285}} block.
+      maintain the order of the original headers in the [@!RFC5285] block.
     
     * If the MDD appends header extensions, then it MUST add the OHB header
       extension (if not present) and add them following the OHB.  The OHB
       serves as a demarcation point between original RTP header extensions
       introduced by the endpoint and those introduced by an MDD.  If the
       MDD did not make changes that would otherwise require an OHB, then
-      it SHOULD insert an OHB that merely replicated the unchanged RTP header
+      it SHOULD insert an OHB that merely replicates the unchanged RTP header
       field values unchanged.
       
 * The MDD MAY modify any header extension appearing after the OHB.
@@ -288,7 +278,10 @@ decrypts and verifies with the inner transform.
     OHB (if present).
 
   * Insert all header extensions up to the OHB extension, but exclude any
-    that following the OHB.
+    that following the OHB.  If the original X bit is 1, then the remaining
+    extensions MUST be padded to the first 32-bit boundary and the overall
+    length of the header extensions adjusted accordingly.  If the original
+    X bit is 0, then the header extensions would be removed entirely.
 
   * Payload is the encrypted original payload.
 
@@ -316,7 +309,7 @@ packet, they MAY be used:
 Unlike RTP, which is encrypted both hop-by-hop and end-to-end using two
 separate cryptographic contexts, RTCP is encrypted using only the outer
 (HBH) cryptographic context.  The procedures for RTCP encryption are
-specified in {{RFC3711}} and this document introduces no additional steps.
+specified in [@!RFC3711] and this document introduces no additional steps.
 
 
 # Recommended Inner and Outer Cryptographic Transforms
@@ -342,8 +335,7 @@ integrity, that would also be reasonable to use for the HBH as the payload data
 is already encrypted by the E2E.
 
 
-Security Considerations
-================
+# Security Considerations
 
 It is obviously critical that the intermediary have only the outer transform
 parameters, and not the inner.  We rely on an external key management protocol
@@ -356,13 +348,16 @@ which to use; there is risk in using either that depends on the session setup.
 The security properties for both the inner and outer key holders are the same as
 the security properties of classic SRTP.
 
-TODO discuss risks of using NULL for hop-by-hop. 
+The NULL cipher MUST be used in conjunction with an encrypted transport
+for both RTP and RTCP.  Use of the NULL cipher for the outer cryptographic
+context without the use of an encrypted transport exposes the RTCP traffic
+to undetectable modification as it it transmitted over the network.
+Likewise, RTP traffic under the same conditions would be subject to
+modification that would not be detectable by the MDD.
 
-IANA Considerations
-==============
+# IANA Considerations
 
-RTP Header Extension
-------------------
+## RTP Header Extension
 
 This document defines a new extension URI in the RTP Compact Header Extensions
 part of the Real-Time Transport Protocol (RTP) Parameters registry,
@@ -374,73 +369,73 @@ Description:   Original Header Block
 
 Contact: Cullen Jennings <fluffy@iii.ca>
 
-Reference:     RFCAAAA
+Reference:     RFCXXXX
 
 Note to RFC Editor: Replace RFCXXXX with the RFC number of this specification. 
       
 
-DTLS-SRTP
----------
+## DTLS-SRTP
 
- We request IANA to add the following values to defines a DTLS-SRTP "SRTP
- Protection Profile" defined in {{!RFC5764}}.
+We request IANA to add the following values to defines a DTLS-SRTP "SRTP
+Protection Profile" defined in [@!RFC5764].
 
-| Value          | Profile            | Reference |
-|----------|-----------|-------|
-|  {TBD, TBD}  | DOUBLE_AEAD_AES_128_GCM_AEAD_AES_128_GCM | RFC_TBD |
-|  {TBD, TBD}  | DOUBLE_AEAD_AES_256_GCM_AEAD_AES_256_GCM | RFC_TBD |
-|  {TBD, TBD}  | DOUBLE_AEAD_AES_128_GCM_NULL_NULL | RFC_TBD |
-|  {TBD, TBD}  | DOUBLE_AEAD_AES_256_GCM_NULL_NULL  | RFC_TBD |
+| Value        | Profile                                  | Reference |
+|:-------------|:-----------------------------------------|:----------|
+|  {TBD, TBD}  | DOUBLE_AEAD_AES_128_GCM_AEAD_AES_128_GCM | RFCXXXX   |
+|  {TBD, TBD}  | DOUBLE_AEAD_AES_256_GCM_AEAD_AES_256_GCM | RFCXXXX   |
+|  {TBD, TBD}  | DOUBLE_AEAD_AES_128_GCM_NULL_NULL        | RFCXXXX   |
+|  {TBD, TBD}  | DOUBLE_AEAD_AES_256_GCM_NULL_NULL        | RFCXXXX   |
 
-Note to IANA: Please assign value to the TBD and update table to point at this
-RFC for these values.
+Note to IANA: Please assign value RFCXXXX and update table to point at
+this RFC for these values.
 
-The  SRTP  transform parameters for each of these protection are:
+The SRTP transform parameters for each of these protection are:
 
+{align="left"}
 ~~~~
-   DOUBLE_AEAD_AES_128_GCM_AEAD_AES_128_GCM
-        cipher:                 AES_128_GCM then AES_128_GCM 
-        cipher_key_length:      256 bits
-        cipher_salt_length:     192 bits
-        aead_auth_tag_length:   32 octets
-        auth_function:          NULL
-        auth_key_length:        N/A
-        auth_tag_length:        N/A
-        maximum lifetime:       at most 2^31 SRTCP packets and
-                                            at most 2^48 SRTP packets
+DOUBLE_AEAD_AES_128_GCM_AEAD_AES_128_GCM
+    cipher:                 AES_128_GCM then AES_128_GCM 
+    cipher_key_length:      256 bits
+    cipher_salt_length:     192 bits
+    aead_auth_tag_length:   32 octets
+    auth_function:          NULL
+    auth_key_length:        N/A
+    auth_tag_length:        N/A
+    maximum lifetime:       at most 2^31 SRTCP packets and
+                            at most 2^48 SRTP packets
 
-   DOUBLE_AEAD_AES_256_GCM_AEAD_AES_256_GCM
-        cipher:                 AES_256_GCM then AES_256_GCM 
-        cipher_key_length:      512 bits
-        cipher_salt_length:     192 bits
-        aead_auth_tag_length:   32 octets
-        auth_function:          NULL
-        auth_key_length:        N/A
-        auth_tag_length:        N/A
-        maximum lifetime:       at most 2^31 SRTCP packets and
-                                            at most 2^48 SRTP packets
+DOUBLE_AEAD_AES_256_GCM_AEAD_AES_256_GCM
+    cipher:                 AES_256_GCM then AES_256_GCM 
+    cipher_key_length:      512 bits
+    cipher_salt_length:     192 bits
+    aead_auth_tag_length:   32 octets
+    auth_function:          NULL
+    auth_key_length:        N/A
+    auth_tag_length:        N/A
+    maximum lifetime:       at most 2^31 SRTCP packets and
+                            at most 2^48 SRTP packets
 
-   DOUBLE_AEAD_AES_128_GCM_NULL_NULL
-        cipher:                 AES_128_GCM then identity transform
-        cipher_key_length:      128 bits
-        cipher_salt_length:     96 bits
-        aead_auth_tag_length:   16 octets
-        auth_function:          NULL
-        auth_key_length:        N/A
-        auth_tag_length:        N/A
-        maximum lifetime:       at most 2^31 SRTCP packets and
-                                            at most 2^48 SRTP packets
+DOUBLE_AEAD_AES_128_GCM_NULL_NULL
+    cipher:                 AES_128_GCM then identity transform
+    cipher_key_length:      128 bits
+    cipher_salt_length:     96 bits
+    aead_auth_tag_length:   16 octets
+    auth_function:          NULL
+    auth_key_length:        N/A
+    auth_tag_length:        N/A
+    maximum lifetime:       at most 2^31 SRTCP packets and
+                            at most 2^48 SRTP packets
 
-   DOUBLE_AEAD_AES_256_GCM_NULL_NULL
-        cipher:                 AES_256_GCM then identity transform
-        cipher_key_length:      256 bits
-        cipher_salt_length:     96 bits
-        aead_auth_tag_length:   16 octets
-        auth_function:          NULL
-        auth_key_length:        N/A
-        auth_tag_length:        N/A
-        maximum lifetime:       at most 2^31 SRTCP packets and
-                                            at most 2^48 SRTP packets
+DOUBLE_AEAD_AES_256_GCM_NULL_NULL
+    cipher:                 AES_256_GCM then identity transform
+    cipher_key_length:      256 bits
+    cipher_salt_length:     96 bits
+    aead_auth_tag_length:   16 octets
+    auth_function:          NULL
+    auth_key_length:        N/A
+    auth_tag_length:        N/A
+    maximum lifetime:       at most 2^31 SRTCP packets and
+                            at most 2^48 SRTP packets
 ~~~~
 
 Except then the NULL cipher is used for the outer (HBH) transform, the first
@@ -450,11 +445,8 @@ cipher for the outer transform, the the key and salt material is applied only
 to the inner transform.
 
 
-Acknowledgments
-=============
+# Acknowledgments
 
 Many thanks to review from GET YOUR NAME HERE. Please, send comments.
 
-
-
-
+{backmatter}
