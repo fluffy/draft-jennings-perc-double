@@ -41,7 +41,6 @@
     organization = "Mozilla"
       [author.address]
       email = "adam@nostrum.com"
-      
 %%%
 
 .# Abstract
@@ -95,25 +94,25 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [@!RFC2119].
 
-Terms:
+Terms used throughout this document include:
 
 * MDD: media distribution device that routes media from one client to other
-  clients
+clients
 
-* E2E: end-to-end, meaning the link from one client through one or more MDDs to\
-  the client at the other end.
+* E2E: end-to-end, meaning the link from one client through one or more MDDs to
+the client at the other end.
 
 * HBH: hop-by-hop, meaning the link from the client to or from the MDD.
 
 * OHB: Original Header Block is an RTP header extension that contains the
-  original values from the RTP header that might have been changed by an MDD.
+original values from the RTP header that might have been changed by an MDD.
 
 
 # Cryptographic Contexts
 
 This specification uses two cryptographic contexts: An inner ("end-to-end")
 context that is used by endpoints that originate and consume media to ensure
-the integrity of media end-to-end, and an outer ("hop-by-hop") context" that
+the integrity of media end-to-end, and an outer ("hop-by-hop") context that
 is used between endpoints and MDDs to ensure the integrity of media over a
 single hop and to enable an MDD to modify certain RTP header fields.  The
 RECOMMENDED cipher for the hop-by-hop and end-to-end context is AES-GCM.
