@@ -222,9 +222,13 @@ is as follows:
 * Form an RTP packet.  If there are any header extensions, they MUST use
   [@!RFC5285].
 
-* Apply the inner cryptographic transform to the RTP packet.
+* Apply the inner cryptographic transform to the RTP packet.  If encrypting
+  RTP header extensions end-to-end, then [@!RFC6904] MUST be used
+  when encrypting the RTP packet using the inner transform.
 
-* Apply the outer cryptographic transform to the RTP packet.
+* Apply the outer cryptographic transform to the RTP packet.  If encrypting
+  RTP header extensions hop-by-hop, then [@!RFC6904] MUST be used
+  when encrypting the RTP packet using the outer transform.
 
 
 ## Modifying a Packet
@@ -233,7 +237,9 @@ In order to modify a packet, the MDD undoes the outer transform, modifies the
 packet, updates the OHB with any modifications not already present in the OHB,
 and re-applies the outer transform.
 
-* Apply the outer decryption transform to the packet
+* Apply the outer decryption transform to the packet.  If decrypting RTP
+  header extensions hop-by-hop, then [@!RFC6904] MUST be used when decrypting
+  the RTP packet using the outer transform.
 
 * Change any required parameters
 
@@ -260,7 +266,9 @@ and re-applies the outer transform.
       
 * The MDD MAY modify any header extension appearing after the OHB.
 
-* Apply the outer encryption transform to the packet
+* Apply the outer encryption transform to the packet.  If encrypting RTP
+  header extensions hop-by-hop, then [@!RFC6904] MUST be used when
+  encrypting the RTP packet using the outer transform.
 
 ## Decrypting a Packet
 
@@ -270,7 +278,9 @@ decrypts and verifies with the inner transform.
 
 * Apply the outer decryption transform to the packet. If the integrity check
   does not pass, discard the packet.  The result of this is referred to as the
-  outer SRTP packet. 
+  outer SRTP packet.  If decrypting RTP header extensions hop-by-hop, then
+  [@!RFC6904] MUST be used when decrypting the RTP packet using the outer
+  transform.
 
 * Form a new synthetic SRTP packet with:
 
@@ -286,7 +296,9 @@ decrypts and verifies with the inner transform.
   * Payload is the encrypted original payload.
 
 * Apply the inner decryption transform to this synthetic SRTP packet. If the
-  integrity check does not pass, discard the packet.
+  integrity check does not pass, discard the packet.  If decrypting RTP
+  header extensions end-to-end, then [@!RFC6904] MUST be used when decrypting
+  the RTP packet using the inner transform.
 
 Once the packet has successfully decrypted, the application needs to be careful
 about which information it uses to get the correct behavior.  The application MUST
