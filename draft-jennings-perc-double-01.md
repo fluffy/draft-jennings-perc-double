@@ -224,6 +224,18 @@ is as follows:
 * Apply the inner cryptographic transform to the RTP packet.  If encrypting
   RTP header extensions end-to-end, then [@!RFC6904] MUST be used
   when encrypting the RTP packet using the inner transform.
+  
+* If the endpoint wishes to insert header extensions that can be modified
+  by an MDD, it MUST insert an OHB header extension at the end of
+  any header extensions protected end-to-end, then add any MDD-modifiable
+  header extensions.  The OHB MUST replicate the information found in
+  the RTP header following the application of the inner cryptographic
+  transform.  For example, if the packet had no header when the inner
+  cryptographic transform was applied, the X bit would be 0.  If the
+  endpoint introduces an OHB and then adds MDD-modifiable header
+  extensions, the X bit in the OHB would be 0.  After introducing the
+  OHB and MDD-modifiable header extensions, of course, the X bit in the
+  RTP header would be set to 1.
 
 * Apply the outer cryptographic transform to the RTP packet.  If encrypting
   RTP header extensions hop-by-hop, then [@!RFC6904] MUST be used
@@ -243,8 +255,9 @@ and re-applies the outer transform.
 * Change any required parameters
 
 * If a changed RTP header field is not already in the OHB, add it with its
-  original value to the OHB.  Note that in the case of cascaded MDDs, the
-  first MDD may have already added an OHB.
+  original value to the OHB.  Note that in the case of cascaded MDDs, a
+  previous MDD may have already added an OHB.  An MDD MAY add information
+  to the OHB, but MUST NOT change existing information in the OHB.
 
 * If the MDD resets a parameter to its original value, it MAY drop it from the
   OHB as long as there are no other header extensions following the OHB.
@@ -256,14 +269,14 @@ and re-applies the outer transform.
       maintain the order of the original headers in the [@!RFC5285] block.
     
     * If the MDD appends header extensions, then it MUST add the OHB header
-      extension (if not present) and add them following the OHB.  The OHB
-      serves as a demarcation point between original RTP header extensions
-      introduced by the endpoint and those introduced by an MDD.  If the
-      MDD did not make changes that would otherwise require an OHB, then
-      it SHOULD insert an OHB that merely replicates the unchanged RTP header
-      field values unchanged.
-      
-* The MDD MAY modify any header extension appearing after the OHB.
+      extension (if not present), even if the OHB merely replicates the
+      original header field values, and append the new extensions following
+      the OHB.  The OHB serves as a demarcation point between original RTP
+      header extensions introduced by the endpoint and those introduced by
+      an MDD.
+    
+* The MDD MAY modify any header extension appearing after the OHB, but
+  MUST NOT modify header extensions that are present before the OHB.
 
 * Apply the outer encryption transform to the packet.  If encrypting RTP
   header extensions hop-by-hop, then [@!RFC6904] MUST be used when
@@ -339,11 +352,21 @@ hop, with those transforms identified as
 DOUBLE_AEAD_AES_128_GCM_NULL_NULL and
 DOUBLE_AEAD_AES_256_GCM_NULL_NULL.
 
-If a new SRTP transform was defined that encrypted some or all of the RTP
-header, it would be reasonable for systems to have the option of using that for
-the outer transform.  Similarly if a new transform was defined that provided only
-integrity, that would also be reasonable to use for the HBH as the payload data
-is already encrypted by the E2E.
+While this document only defines a profile based on AES-GCM, it is possible
+for future documents to define further profiles with different inner and
+outer transforms in this same framework.  For example, if a new SRTP
+transform was defined that encrypted some or all of the RTP header, it would
+be reasonable for systems to have the option of using that for the outer
+transform.  Similarly if a new transform was defined that provided only
+integrity, that would also be reasonable to use for the HBH as the payload
+data is already encrypted by the E2E.
+
+The AES-GCM cryptographic transform introduces an additional 16 octets
+to the length of the packet.  When using AES-GCM for both the inner and
+outer cryptographic transforms, the total additional length is 32 octets.
+If no other header extensions are present in the packet and the OHB is
+introduced, that will consume an additional 8 octets.  If other extensions
+are already present, the OHB will consume up to 4 octets.
 
 
 # Security Considerations
