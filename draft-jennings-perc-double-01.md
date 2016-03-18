@@ -352,6 +352,10 @@ hop, with those transforms identified as
 DOUBLE_AEAD_AES_128_GCM_NULL_NULL and
 DOUBLE_AEAD_AES_256_GCM_NULL_NULL.
 
+Open Issue: It is not clear if the NUL ciphers are needed or not. The authors
+plan to remove them from the next version of the draft unless there is a
+reasonable support and reasons to keep them in.
+
 While this document only defines a profile based on AES-GCM, it is possible
 for future documents to define further profiles with different inner and
 outer transforms in this same framework.  For example, if a new SRTP
