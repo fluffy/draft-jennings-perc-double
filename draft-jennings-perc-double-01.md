@@ -403,8 +403,8 @@ Likewise, RTP traffic under the same conditions would be subject to
 modification that would not be detectable by the MDD.  While the endpoint
 could detect modification of the end-to-end information, reliance on
 information like payload type value in the packet received from the MDD
-could present problems (e.g., attempting to decode media with the wrong
-codec).
+could present problems such as attempting to decode media with the wrong
+codec.
 
 # IANA Considerations
 
