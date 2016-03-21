@@ -1,4 +1,5 @@
 %%%
+
     #
     # SRTP Double Encryption Procedures
     #
@@ -27,7 +28,7 @@
       email = "fluffy@iii.ca"
 
     [[author]]
-    initials = "P.E."
+    initials = "P."
     surname = "Jones"
     fullname = "Paul E. Jones"
     organization = "Cisco Systems"
@@ -41,6 +42,7 @@
     organization = "Mozilla"
       [author.address]
       email = "adam@nostrum.com"
+
 %%%
 
 .# Abstract
