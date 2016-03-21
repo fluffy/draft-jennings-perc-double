@@ -54,8 +54,7 @@ separate but related cryptographic contexts to provide "hop-by-hop" and
 "end-to-end" security guarantees.  Both the end-to-end and hop-by-hop
 cryptographic transforms can utilize an authenticated encryption with
 associated data scheme or take advantage of future SRTP transforms with
-different properties.  RTCP is encrypted hop-by-hop using the same
-cryptographic transform used for hop-by-hop encryption of RTP.
+different properties.
 
 
 {mainmatter}
@@ -63,29 +62,29 @@ cryptographic transform used for hop-by-hop encryption of RTP.
 # Introduction
 
 Cloud conferencing systems that are based on switched conferencing have a
-central media distribution device (MDD) that receives media from clients and
-distributes it to other clients, but does not need to interpret or change the
-media content.  For these systems, it is desirable to have one security
-association from the sending client to the receiving client that can encrypt and
-authenticated the media end-to-end while still allowing certain RTP header
-information to be changed by the MDD.  At the same time, a separate security
-association provides integrity and optional confidentiality for the
-media flowing between the MDD and the clients.  See the framework document
+central media distribution device (MDD) that receives media from endpoints and
+distributes it to other endpoints, but does not need to interpret or change the
+media content.  For these systems, it is desirable to have one cryptographic
+context from the sending endpoint to the receiving endpoint that can encrypt and
+authenticate the media end-to-end while still allowing certain RTP header
+information to be changed by the MDD.  At the same time, a separate cryptographic
+context provides integrity and optional confidentiality for the
+media flowing between the MDD and the endpoints.  See the framework document
 that describes this concept in more detail in more detail in
 [@I-D.jones-perc-private-media-framework].
 
 This specification RECOMMENDS the SRTP AES-GCM transform
-[@!RFC7714] to encrypt an RTP packet and to form the
-end-to-end security association.  The output of this is treated as an RTP packet
-and (optionally) again encrypted with an SRTP transform and to form the hop-by-hop
-security association between the client and the MDD.  The MDD decrypts and checks
+[@!RFC7714] to encrypt an RTP packet for the
+end-to-end cryptographic context.  The output of this is treated as an RTP packet
+and again encrypted with an SRTP transform used in the hop-by-hop
+cryptographic context between the endpoint and the MDD.  The MDD decrypts and checks
 integrity of the hop-by-hop security.  The MDD MAY change some of the RTP
-header information that would impact the end-to-end integrity.  For any
-values that are changed, the original values before changing are included in a
+header information that would impact the end-to-end integrity.
+The original value of any RTP header field that is changed is included in a
 new RTP header extension called the Original Header Block.  The new RTP packet is
-encrypted with the hop-by-hop security association for the destination client
-before being sent.  The receiving client decrypts and checks integrity for the
-hop-by-hop association from the MDD then replaces any parameters the MDD changed
+encrypted with the hop-by-hop cryptographic transform
+before it is sent.  The receiving endpoint decrypts and checks integrity using the
+hop-by-hop cryptographic transform and then replaces any parameters the MDD changed
 using the information in the Original Header Block before decrypting and
 checking the end-to-end integrity.
 
@@ -98,13 +97,13 @@ interpreted as described in [@!RFC2119].
 
 Terms used throughout this document include:
 
-* MDD: media distribution device that routes media from one client to other
-clients
+* MDD: media distribution device that routes media from one endpoint to other
+endpoints
 
-* E2E: end-to-end, meaning the link from one client through one or more MDDs to
-the client at the other end.
+* E2E: end-to-end, meaning the link from one endpoint through one or more MDDs to
+the endpoint at the other end.
 
-* HBH: hop-by-hop, meaning the link from the client to or from the MDD.
+* HBH: hop-by-hop, meaning the link from the endpoint to or from the MDD.
 
 * OHB: Original Header Block is an RTP header extension that contains the
 original values from the RTP header that might have been changed by an MDD.
@@ -118,26 +117,24 @@ the integrity of media end-to-end, and an outer ("hop-by-hop") context that
 is used between endpoints and MDDs to ensure the integrity of media over a
 single hop and to enable an MDD to modify certain RTP header fields.  RTCP
 is also encrypted using the hop-by-hop cryptographic context.  The
-RECOMMENDED cipher for the hop-by-hop and end-to-end context is AES-GCM.
-However, other combinations of SRTP ciphers that support the procedures in
+RECOMMENDED cipher for the hop-by-hop and end-to-end contexts is AES-GCM.
+Other combinations of SRTP ciphers that support the procedures in
 this document can be added to the IANA registry.
 
 The keys and salt for these contexts are generated with the following steps:
 
-* Generate key and salt values of twice the length required by the inner
-  (end-to-end) and outer (hop-by-hop) transforms
+* Generate key and salt values of the length required for the combined inner
+  (end-to-end) and outer (hop-by-hop) transforms.
 
-* Assign the first part of each value to be the key and salt, respectively, for
-  the inner (end-to-end) transform.
+* Assign the key and salt values generated for the inner (end-to-end) transform.
 
-* Assign the second part of each value to be the key and salt, respectively, for
-  the outer (hop-by-hop) transform.
+* Assign the key and salt values for the outer (hop-by-hop) transform.
 
 As a special case, the outer cryptographic transform MAY be the NULL cipher
-(see [@!RFC3711]) if a secure transport, such as [@RFC6347], is used over a
+(see [@!RFC3711]) if a secure transport such as [@RFC6347] is used over a
 hop (i.e., between an endpoint and MDD or between two MDDs).  In that case, the
 key and salt values generated would be the length required only for the inner
-cryptographic transform, which MUST NOT be the NULL cipher.
+cryptographic transform.
   
 Obviously, if the MDD is to be able to modify header fields but not decrypt the
 payload, then it must have cryptographic context for the outer transform, but
@@ -157,7 +154,8 @@ Placement of the OHB after any original header extensions is important so that
 the receiving endpoint can properly authenticate the original packet and
 any originally included RTP header extensions.  The receiving endpoint
 will authenticate the original packet by restoring
-the modified RTP header field values by copying those from the OHB and then
+the modified RTP header field values and header extensions.
+It does this by copying the original values from the OHB and then
 removing the OHB extension and any other RTP header extensions that appear
 after the OHB extension.
 
@@ -206,8 +204,8 @@ this form:
 ~~~~~
 
 If an MDD modifies an original RTP header value, the MDD MUST include the
-OHB extension to reflect the changed value(s).  If another MDD along the
-media path makes additional changes to the RTP header and the original
+OHB extension to reflect the changed value.  If another MDD along the
+media path makes additional changes to the RTP header and any original
 value is not already present in the OHB, the MDD must extend the OHB by
 adding the changed value to the OHB.  To properly preserve original
 RTP header values, an MDD MUST NOT change a value already present in the
@@ -218,8 +216,8 @@ OHB extension.
 
 ## Encrypting a Packet
 
-To encrypt a packet, the endpoint encrypts the packet with the inner
-cryptographic context and then applies the outer cryptographic context.
+To encrypt a packet, the endpoint encrypts the packet using the inner
+cryptographic context and then encrypts using the outer cryptographic context.
 The processes is as follows:
 
 * Form an RTP packet.  If there are any header extensions, they MUST use
@@ -250,16 +248,16 @@ The processes is as follows:
 
 The MDD does not have a notion of outer or inner cryptographic contexts.
 Rather, the MDD has a single cryptographic context.  The cryptographic
-transform(s) used to decrypt a packet and any encrypted RTP header
-extensions would be the same as those used in the endpoints outer
+transform and key used to decrypt a packet and any encrypted RTP header
+extensions would be the same as those used in the endpoint's outer
 cryptographic context.
 
 In order to modify a packet, the MDD decrypts the packet, modifies the
 packet, updates the OHB with any modifications not already present in the OHB,
-and re-encrypts the packet using the cryptographic context used by next
+and re-encrypts the packet using the cryptographic context used for next
 hop.
 
-* Apply the decryption transform to the packet.  If decrypting RTP
+* Apply the cryptographic transform to the packet.  If decrypting RTP
   header extensions hop-by-hop, then [@!RFC6904] MUST be used.
 
 * Change any required parameters
@@ -272,7 +270,8 @@ hop.
   OHB as long as there are no other header extensions following the OHB.
   Note that this might result in a decrease in the size of the OHB.
 
-* The MDD MUST NOT delete any header extensions, but MAY add them.
+* The MDD MUST NOT delete any header extensions before the OHB, but MAY
+  add, delete, or modify any that follow the OHB.
 
     * If the MDD adds any header extensions, it must append them and it must
       maintain the order of the original header extensions in the [@!RFC5285] block.
@@ -287,7 +286,7 @@ hop.
 * The MDD MAY modify any header extension appearing after the OHB, but
   MUST NOT modify header extensions that are present before the OHB.
 
-* Apply the encryption transform to the packet.  If encrypting RTP
+* Apply the cryptographic transform to the packet.  If encrypting RTP
   header extensions hop-by-hop, then [@!RFC6904] MUST be used.
 
 ## Decrypting a Packet
@@ -296,7 +295,7 @@ To decrypt a packet, the endpoint first decrypts and verifies using the outer
 cryptographic context, then uses the OHB to reconstruct the original packet, which it
 decrypts and verifies with the inner cryptographic context.
 
-* Apply the outer decryption transform to the packet.  If the integrity check
+* Apply the outer cryptographic transform to the packet.  If the integrity check
   does not pass, discard the packet.  The result of this is referred to as the
   outer SRTP packet.  If decrypting RTP header extensions hop-by-hop, then
   [@!RFC6904] MUST be used when decrypting the RTP packet using the outer
@@ -308,14 +307,14 @@ decrypts and verifies with the inner cryptographic context.
     OHB (if present).
 
   * Insert all header extensions up to the OHB extension, but exclude the OHB
-    and any that follow the OHB.  If the original X bit is 1, then the remaining
+    and any header extensions that follow the OHB.  If the original X bit is 1, then the remaining
     extensions MUST be padded to the first 32-bit boundary and the overall
     length of the header extensions adjusted accordingly.  If the original
     X bit is 0, then the header extensions would be removed entirely.
 
   * Payload is the original encrypted payload.
 
-* Apply the inner decryption transform to this synthetic SRTP packet.  If the
+* Apply the inner cryptographic transform to this synthetic SRTP packet.  If the
   integrity check does not pass, discard the packet.  If decrypting RTP
   header extensions end-to-end, then [@!RFC6904] MUST be used when decrypting
   the RTP packet using the inner cryptographic context.
@@ -370,7 +369,7 @@ reasonable support and reasons to keep them in.
 While this document only defines a profile based on AES-GCM, it is possible
 for future documents to define further profiles with different inner and
 outer transforms in this same framework.  For example, if a new SRTP
-transform was defined that encrypted some or all of the RTP header, it would
+transform was defined that encrypts some or all of the RTP header, it would
 be reasonable for systems to have the option of using that for the outer
 transform.  Similarly, if a new transform was defined that provided only
 integrity, that would also be reasonable to use for the HBH as the payload
@@ -387,7 +386,7 @@ are already present, the OHB will consume up to 4 additional octets.
 # Security Considerations
 
 It is obviously critical that the intermediary have only the outer transform
-parameters, and not the inner.  We rely on an external key management protocol
+parameters and not the inner transform parameters.  We rely on an external key management protocol
 to assure this property.
 
 Modifications by the intermediary result in the recipient getting two values for
