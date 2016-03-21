@@ -1,8 +1,7 @@
-*.txt
-*.html
-*.pdf
-*.xml
+/*.txt
+/*.html
+/*.pdf
+/*.xml
 *~
 .refcache
 old
-
