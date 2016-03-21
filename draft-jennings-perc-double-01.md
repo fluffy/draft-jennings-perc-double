@@ -142,7 +142,7 @@ cryptographic transform, which MUST NOT be the NULL cipher.
 Obviously, if the MDD is to be able to modify header fields but not decrypt the
 payload, then it must have cryptographic context for the outer transform, but
 not the inner transform.  This document does not define how the MDD should be
-provisioned with this information.  One possible way to provide key material for
+provisioned with this information.  One possible way to provide keying material for
 the outer ("hop-by-hop") transform is to use [@I-D.jones-perc-dtls-tunnel].
 
 
@@ -494,7 +494,7 @@ DOUBLE_AEAD_AES_256_GCM_NULL_NULL
 Except when the NULL cipher is used for the outer (HBH) transform, the first
 half of the key and salt is used for the inner (E2E) transform and the
 second half is used for the outer (HBH) transform.  For those that use the NULL
-cipher for the outer transform, the the key and salt material is applied only
+cipher for the outer transform, the the key and salt is applied only
 to the inner transform.
 
 
